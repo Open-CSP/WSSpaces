@@ -38,6 +38,9 @@ class ApiQuerySpaceAdmins extends \ApiQueryBase {
 		foreach ( $admins as $key => $admin ) {
 			$result->addValue( [ "admins", $key ], "admin_id", (int)$admin->getId() );
 			$result->addValue( [ "admins", $key ], "admin_name", $admin->getName() );
+			if ( $request_params[ 'realnames' ] ) {
+				$result->addValue( [ "admins", $key ], "admin_realname", $admin->getRealName() ?? $admin->getName() );
+			}
 		}
 	}
 
@@ -49,6 +52,10 @@ class ApiQuerySpaceAdmins extends \ApiQueryBase {
 			'namespace' => [
 				ApiBase::PARAM_TYPE => "integer",
 				ApiBase::PARAM_HELP_MSG => "wss-api-namespace-param"
+			],
+			'realnames' => [
+				ApiBase::PARAM_TYPE => "boolean",
+				ApiBase::PARAM_HELP_MSG => "wss-api-realnames-param"
 			]
 		];
 	}
