@@ -38,7 +38,7 @@ class ApiQuerySpaceAdmins extends \ApiQueryBase {
 		foreach ( $admins as $key => $admin ) {
 			$result->addValue( [ "admins", $key ], "admin_id", (int)$admin->getId() );
 			$result->addValue( [ "admins", $key ], "admin_name", $admin->getName() );
-			if ( $request_params[ 'realnames' ] ) {
+			if ( isset( $request_params[ 'realnames' ] ) && $request_params[ 'realnames' ] ) {
 				$result->addValue( [ "admins", $key ], "admin_realname", $admin->getRealName() ?? $admin->getName() );
 			}
 		}
