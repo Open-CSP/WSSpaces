@@ -7,7 +7,6 @@ use MediaWiki\Auth\AuthManager;
 use MediaWiki\Session\Session;
 use MWException;
 use Parser;
-use User;
 use WSS\UI\WSSUI;
 
 /**
@@ -38,7 +37,7 @@ abstract class WSSHooks {
 	 *
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/SecuritySensitiveOperationStatus
 	 *
-	 * @param string &$status
+	 * @param string $status
 	 * @param string $operation
 	 * @param Session $session
 	 * @param int $timeSinceAuth
@@ -72,7 +71,7 @@ abstract class WSSHooks {
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/SkinBuildSidebar
 	 *
 	 * @param \Skin $skin
-	 * @param array &$bar
+	 * @param array $bar
 	 * @return bool
 	 * @throws ConfigException
 	 */
@@ -144,7 +143,7 @@ abstract class WSSHooks {
 			],
 		];
 
-		foreach ($sql_patch_files as $patch) {
+		foreach ( $sql_patch_files as $patch ) {
 			$path = sprintf( "%s/%s/%s", $directory, $type, $patch['file'] );
 
 			if ( !file_exists( $path ) ) {
@@ -166,7 +165,7 @@ abstract class WSSHooks {
 	 *
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/CanonicalNamespaces
 	 *
-	 * @param array &$namespaces
+	 * @param array $namespaces
 	 * @return bool
 	 *
 	 * @throws ConfigException
@@ -188,10 +187,10 @@ abstract class WSSHooks {
 	 *
 	 * @see https://www.mediawiki.org/wiki/Extension:UserMerge/Hooks/UserMergeAccountFields
 	 *
-	 * @param array &$updateFields The fields as described on the documentation page
+	 * @param array $updateFields The fields as described on the documentation page
 	 */
 	public static function onUserMergeAccountFields( &$updateFields ) {
-		$updateFields []= [ 'wss_namespace_admins', 'admin_user_id', 'options' => [ 'IGNORE' ] ];
+		$updateFields [] = [ 'wss_namespace_admins', 'admin_user_id', 'options' => [ 'IGNORE' ] ];
 	}
 
 	/**
@@ -199,7 +198,7 @@ abstract class WSSHooks {
 	 *
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ExtensionTypes
 	 *
-	 * @param array &$extension_types
+	 * @param array $extension_types
 	 * @return bool
 	 */
 	public static function onExtensionTypes( array &$extension_types ): bool {

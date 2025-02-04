@@ -167,14 +167,20 @@ class Space {
 	 * Returns a new space object for the given condition. Should be a condition on the wss_spaces table
 	 *
 	 * @param array $condition The condition that we query on
-	 * @return Space|false     The (first) space that satisfies $condition
+	 * @return Space|false The (first) space that satisfies $condition
 	 */
 	private static function newFromRow( array $condition ) {
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_REPLICA );
+		$loadBalancer = MediaWikiServices::getInstance()->getDBLoadBalancer();
+
+		if ( method_exists( $loadBalancer, 'getConnection' ) ) {
+			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
+		} else {
+			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_REPLICA );
+		}
 
 		// It might happen that this function is called during run of update.php,
 		// while database is not property set up. In that case, give a sensible return value.
-		if ( !$dbr->tableExists('wss_namespaces', __METHOD__ ) ) {
+		if ( !$dbr->tableExists( 'wss_namespaces', __METHOD__ ) ) {
 			return false;
 		}
 		$namespace = $dbr->newSelectQueryBuilder()->select(
@@ -378,8 +384,14 @@ class Space {
 	 * @return bool
 	 */
 	public function exists(): bool {
-		// Get DB_MASTER to ensure integrity
-		$database = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_MASTER );
+		$loadBalancer = MediaWikiServices::getInstance()->getDBLoadBalancer();
+
+		// Get DB_PRIMARY to ensure integrity
+		if ( method_exists( $loadBalancer, 'getConnection' ) ) {
+			$database = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
+		} else {
+			$database = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_PRIMARY );
+		}
 
 		// If database has not been set up yet (e.g. during update.php run), namespace does not exist yet.
 		if ( !$database->tableExists( 'wss_namespaces', __METHOD__ ) ) {

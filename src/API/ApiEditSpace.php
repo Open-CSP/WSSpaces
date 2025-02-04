@@ -3,12 +3,12 @@
 namespace WSS\API;
 
 use ApiUsageException;
+use MediaWiki\MediaWikiServices;
 use MWException;
 use User;
 use WSS\NamespaceRepository;
 use WSS\Space;
 use WSS\Validation\AddSpaceValidationCallback;
-use MediaWiki\MediaWikiServices;
 
 class ApiEditSpace extends ApiBase {
 	/**
@@ -91,7 +91,7 @@ class ApiEditSpace extends ApiBase {
 	 *
 	 * @throws ApiUsageException
 	 */
-	private function validateParams (
+	private function validateParams(
 		Space $space,
 		?string $ns_key,
 		?string $ns_name,
@@ -111,17 +111,17 @@ class ApiEditSpace extends ApiBase {
 		];
 
 		// Validate "nskey"
-		if ( !is_null( $ns_key ) && $add_space_validation_callback->validateField( "namespace", $ns_key, $request_data ) !== true ) {
+		if ( $ns_key !== null && $add_space_validation_callback->validateField( "namespace", $ns_key, $request_data ) !== true ) {
 			$this->dieWithError( $this->msg( "wss-api-invalid-param-nskey" ) );
 		}
 
 		// Validate "nsname"
-		if ( !is_null( $ns_name ) && $add_space_validation_callback->validateField( "namespace_name", $ns_name, $request_data ) !== true ) {
+		if ( $ns_name !== null && $add_space_validation_callback->validateField( "namespace_name", $ns_name, $request_data ) !== true ) {
 			$this->dieWithError( $this->msg( "wss-api-invalid-param-nsname" ) );
 		}
 
 		// Validate "nsdescription"
-		if ( !is_null( $ns_description ) && $add_space_validation_callback->validateRequired( $ns_description ) !== true ) {
+		if ( $ns_description !== null && $add_space_validation_callback->validateRequired( $ns_description ) !== true ) {
 			$this->dieWithError( $this->msg( "wss-api-invalid-param-nsdescription" ) );
 		}
 	}
@@ -136,12 +136,12 @@ class ApiEditSpace extends ApiBase {
 		$badNames = [];
 		foreach ( $admins as $admin ) {
 			$user = $userFactory->newFromName( $admin );
-			if ( (!$user instanceof User) || (!$user->isRegistered()) ) {
-				$badNames []= $admin;
+			if ( ( !$user instanceof User ) || ( !$user->isRegistered() ) ) {
+				$badNames [] = $admin;
 			}
 		}
 		if ( !empty( $badNames ) ) {
-			$this->dieWithError( $this->msg( 'wss-api-invalid-param-detailed-nsadmins', '"'.implode( '","', $badNames ).'"' ) );
+			$this->dieWithError( $this->msg( 'wss-api-invalid-param-detailed-nsadmins', '"' . implode( '","', $badNames ) . '"' ) );
 		}
 	}
 

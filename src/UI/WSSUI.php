@@ -89,7 +89,7 @@ abstract class WSSUI {
 	/**
 	 * Sets the sidebar.
 	 *
-	 * @param array &$bar
+	 * @param array $bar
 	 * @throws \ConfigException
 	 */
 	public static function setSidebar( &$bar ) {
@@ -191,7 +191,6 @@ abstract class WSSUI {
 	 */
 	private function preRender() {
 		$this->getOutput()->clearHTML();
-		$this->getOutput()->preventClickjacking();
 	}
 
 	/**
