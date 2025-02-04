@@ -2,9 +2,7 @@
 
 namespace WSS\API;
 
-use WSS\NamespaceRepository;
 use WSS\Space;
-use MediaWiki\MediaWikiServices;
 
 class ApiQuerySingleSpace extends \ApiQueryBase {
 	/**
@@ -30,8 +28,7 @@ class ApiQuerySingleSpace extends \ApiQueryBase {
 	/**
 	 * Get the space based on one of these properties (in the order provided)
 	 */
-	protected function getSpace( $ns_id, $ns_key, $ns_name ): ?Space
-	{
+	protected function getSpace( $ns_id, $ns_key, $ns_name ): ?Space {
 		if ( $ns_id !== false ) {
 			return Space::newFromConstant( $ns_id ) ?: null;
 		} elseif ( $ns_key !== false ) {
@@ -43,8 +40,7 @@ class ApiQuerySingleSpace extends \ApiQueryBase {
 		return null;
 	}
 
-	protected function addSpaceValuesToResult( $result, $space ): void
-	{
+	protected function addSpaceValuesToResult( $result, $space ): void {
 		$space_id = $space->getId();
 
 		$result->addValue( $space_id, "id", $space->getId() );

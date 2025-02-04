@@ -29,7 +29,7 @@ class SpacePager extends Pager {
 				'created_on'
 			],
 			'conds' => [
-				'archived' => false
+				'archived' => '0'
 			]
 		];
 	}

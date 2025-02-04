@@ -45,7 +45,7 @@ class SpecialAddSpace extends SpecialPage {
 	 * @inheritDoc
 	 */
 	public function getDescription() {
-		return $this->msg( 'wss-add-space-header' )->plain();
+		return $this->msg( 'wss-add-space-header' );
 	}
 
 	/**

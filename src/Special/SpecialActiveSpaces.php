@@ -53,7 +53,7 @@ class SpecialActiveSpaces extends SpecialPage {
 	 * @inheritDoc
 	 */
 	public function getDescription() {
-		return $this->msg( 'wss-active-spaces-header' )->plain();
+		return $this->msg( 'wss-active-spaces-header' );
 	}
 
 	/**

@@ -12,7 +12,6 @@ use PermissionsError;
 use RequestContext;
 use User;
 use Wikimedia\Rdbms\ILoadBalancer;
-use Wikimedia\Rdbms\LoadBalancer;
 use WSS\Log\AddSpaceLog;
 use WSS\Log\ArchiveSpaceLog;
 use WSS\Log\UnarchiveSpaceLog;
@@ -55,7 +54,7 @@ class NamespaceRepository {
 	 * @return int
 	 */
 	public static function getNextAvailableNamespaceId(): int {
-        $dbr = self::getConnection( MediaWikiServices::getInstance()->getDBLoadBalancer() );
+		$dbr = self::getConnection( MediaWikiServices::getInstance()->getDBLoadBalancer() );
 
 		$result = $dbr->newSelectQueryBuilder()->select(
 			'namespace_id'
@@ -101,7 +100,7 @@ class NamespaceRepository {
 	 * @return array
 	 */
 	public function getAllSpaces( $flip = false ): array {
-		$dbr = self::getConnection( $this->dbLoadBalancer, DB_REPLICA );;
+		$dbr = self::getConnection( $this->dbLoadBalancer, DB_REPLICA );
 
 		// In some rare cases, update.php might look up namespaces before
 		// the database has been set up for this extension.
@@ -134,7 +133,7 @@ class NamespaceRepository {
 	 * @return array
 	 */
 	public static function getNamespaceAdmins( int $namespace_id ): array {
-        $dbr = self::getConnection( MediaWikiServices::getInstance()->getDBLoadBalancer(), DB_REPLICA );
+		$dbr = self::getConnection( MediaWikiServices::getInstance()->getDBLoadBalancer(), DB_REPLICA );
 
 		// In some rare cases, update.php might look up namespace admins before
 		// the database has been set up for this extension.
@@ -235,14 +234,14 @@ class NamespaceRepository {
 
 		$namespace_id = self::getNextAvailableNamespaceId();
 
-        $database = self::getConnection( $this->dbLoadBalancer );
+		$database = self::getConnection( $this->dbLoadBalancer );
 		$database->insert(
 		'wss_namespaces',  [
 			'namespace_id' => $namespace_id,
 			'namespace_name' => $space->getName(),
 			'namespace_key' => $space->getKey(),
 			'description' => $space->getDescription(),
-			'archived' => $space->isArchived(),
+			'archived' => $space->isArchived() ? '1' : '0',
 			'creator_id' => $space->getOwner()->getId(),
 			'created_on' => time()
 		] );
@@ -293,13 +292,13 @@ class NamespaceRepository {
 			$log->insert();
 		}
 
-        $database = self::getConnection( $this->dbLoadBalancer );
+		$database = self::getConnection( $this->dbLoadBalancer );
 		$database->update( 'wss_namespaces', [
 			'namespace_key' => $new_space->getKey(),
 			'namespace_name' => $new_space->getName(),
 			'description' => $new_space->getDescription(),
 			'creator_id' => $new_space->getOwner()->getId(),
-			'archived' => $new_space->isArchived()
+			'archived' => $new_space->isArchived() ? '1' : '0'
 		], [
 			'namespace_id' => $old_space->getId()
 		] );
@@ -506,7 +505,7 @@ class NamespaceRepository {
 	 * @return array
 	 */
 	private function getSpacesOnArchived( bool $archived ): array {
-        $dbr = self::getConnection( $this->dbLoadBalancer, DB_REPLICA );
+		$dbr = self::getConnection( $this->dbLoadBalancer, DB_REPLICA );
 		if ( !$dbr->tableExists( 'wss_namespaces', __METHOD__ ) ) {
 			return [];
 		}
@@ -519,7 +518,7 @@ class NamespaceRepository {
 			'wss_namespaces'
 		)->where(
 			[
-				'archived' => $archived
+				'archived' => $archived ? '1' : '0'
 			]
 		)->caller( __METHOD__ )->fetchResultSet();
 
@@ -568,11 +567,11 @@ class NamespaceRepository {
 		return array_values( $rows );
 	}
 
-    private static function getConnection( ILoadBalancer $dbLoadBalancer, int $i = DB_PRIMARY ) {
-        if (method_exists($dbLoadBalancer, 'getConnection')) {
-            return $dbLoadBalancer->getConnection( $i );
-        } else {
-            return $dbLoadBalancer->getConnectionRef( $i );
-        }
-    }
+	private static function getConnection( ILoadBalancer $dbLoadBalancer, int $i = DB_PRIMARY ) {
+		if ( method_exists( $dbLoadBalancer, 'getConnection' ) ) {
+			return $dbLoadBalancer->getConnection( $i );
+		} else {
+			return $dbLoadBalancer->getConnectionRef( $i );
+		}
+	}
 }

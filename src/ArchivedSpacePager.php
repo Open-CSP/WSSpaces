@@ -26,7 +26,7 @@ class ArchivedSpacePager extends Pager {
 				'description'
 			],
 			'conds' => [
-				'archived' => true
+				'archived' => '1'
 			]
 		];
 	}

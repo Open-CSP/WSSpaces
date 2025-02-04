@@ -71,8 +71,14 @@ class AddSpaceValidationCallback extends AbstractValidationCallback {
 	 * @return bool|string
 	 */
 	private function validateNamespaceName( $value, array $form_data ) {
+		$loadBalancer = MediaWikiServices::getInstance()->getDBLoadBalancer();
+
 		// Get DB_PRIMARY to ensure integrity
-		$database = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_PRIMARY );
+		if ( method_exists( $loadBalancer, 'getConnection' ) ) {
+			$database = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
+		} else {
+			$database = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_PRIMARY );
+		}
 
 		$namespace = $database->newSelectQueryBuilder()->select(
 			"namespace_id"
