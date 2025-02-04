@@ -71,8 +71,8 @@ class AddSpaceValidationCallback extends AbstractValidationCallback {
 	 * @return bool|string
 	 */
 	private function validateNamespaceName( $value, array $form_data ) {
-		// Get DB_MASTER to ensure integrity
-		$database = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_MASTER );
+		// Get DB_PRIMARY to ensure integrity
+		$database = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_PRIMARY );
 
 		$namespace = $database->newSelectQueryBuilder()->select(
 			"namespace_id"
