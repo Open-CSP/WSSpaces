@@ -191,7 +191,6 @@ abstract class WSSUI {
 	 */
 	private function preRender() {
 		$this->getOutput()->clearHTML();
-		$this->getOutput()->preventClickjacking();
 	}
 
 	/**
