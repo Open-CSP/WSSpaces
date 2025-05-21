@@ -141,6 +141,11 @@ abstract class WSSHooks {
 				'field' => 'namespace_name',
 				'file' => "wss_namespaces_patch_1.sql"
 			],
+			[
+				'table' => 'wss_namespaces',
+				'newfield' => 'protected',
+				'file' => "wss_namespaces_patch_2.sql"
+			],
 		];
 
 		foreach ( $sql_patch_files as $patch ) {
@@ -152,6 +157,8 @@ abstract class WSSHooks {
 
 			if ( isset( $patch['field'] ) ) {
 				$updater->modifyExtensionField( $patch[ 'table' ], $patch[ 'field' ], $path );
+			} elseif ( isset ( $patch['newfield'] ) ) {
+				$updater->addExtensionField( $patch[ 'table' ], $patch[ 'newfield' ], $path );
 			} else {
 				$updater->modifyExtensionTable( $patch[ 'table' ], $path );
 			}

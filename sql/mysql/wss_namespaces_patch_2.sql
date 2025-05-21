@@ -1,0 +1,1 @@
+ALTER TABLE /*_*/wss_namespaces ADD COLUMN protected BOOLEAN NOT NULL DEFAULT FALSE;

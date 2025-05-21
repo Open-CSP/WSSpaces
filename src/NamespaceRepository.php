@@ -242,6 +242,7 @@ class NamespaceRepository {
 			'namespace_key' => $space->getKey(),
 			'description' => $space->getDescription(),
 			'archived' => $space->isArchived() ? '1' : '0',
+			'protected' => $space->isProtected() ? '1' : '0',
 			'creator_id' => $space->getOwner()->getId(),
 			'created_on' => time()
 		] );
@@ -298,7 +299,8 @@ class NamespaceRepository {
 			'namespace_name' => $new_space->getName(),
 			'description' => $new_space->getDescription(),
 			'creator_id' => $new_space->getOwner()->getId(),
-			'archived' => $new_space->isArchived() ? '1' : '0'
+			'archived' => $new_space->isArchived() ? '1' : '0',
+			'protected' => $new_space->isProtected() ? '1' : '0',
 		], [
 			'namespace_id' => $old_space->getId()
 		] );
