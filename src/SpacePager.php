@@ -26,7 +26,8 @@ class SpacePager extends Pager {
 				'namespace_key',
 				'description',
 				'creator_id',
-				'created_on'
+				'created_on',
+				'protected'
 			],
 			'conds' => [
 				'archived' => '0'
@@ -82,6 +83,8 @@ class SpacePager extends Pager {
 				return $user->getName();
 			case 'created_on':
 				return date( "F jS, Y h:i:s", $value );
+			case 'protected':
+				return $value ? 'protected' : 'editable';
 			default:
 				return $value;
 		}
@@ -117,7 +120,8 @@ class SpacePager extends Pager {
 			'namespace_id' => "Namespace",
 			'description' => "Description",
 			'creator_id' => "Created by",
-			'created_on' => "Created on"
+			'created_on' => "Created on",
+			'protected' => "Protected",
 		];
 	}
 }

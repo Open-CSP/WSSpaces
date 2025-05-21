@@ -42,7 +42,12 @@ class AddSpaceForm extends AbstractForm {
 				'validation-callback' => function ( $field, $data ) {
 					return $this->getValidationCallback()->validateRequired( $field );
 				}
-			]
+			],
+			'protected' => [
+				'label-message' => 'wss-add-space-form-protected-label',
+				'type' => 'check',
+				'default' => false,
+			],
 		];
 	}
 
