@@ -40,7 +40,7 @@ class ApiAddSpace extends ApiBase {
 		$ns_description = $request_params["nsdescription"];
 		$ns_admins = $request_params["nsadmins"];
 		$ns_admins = explode( ",", $ns_admins );
-		$ns_protected = $request_params["nsprotected"];
+		$ns_protected = isset( $request_params[ "nsprotected" ] ) && $request_params[ "nsprotected" ] !== 'false';
 
 		$current_user = \RequestContext::getMain()->getUser();
 
@@ -150,7 +150,8 @@ class ApiAddSpace extends ApiBase {
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsadmins-param"
 			],
 			'nsprotected' => [
-				ParamValidator::PARAM_TYPE => "boolean",
+				// We use string instead of boolean for consistency with EditSpace api
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsprotected-param"
 			],
 		];
