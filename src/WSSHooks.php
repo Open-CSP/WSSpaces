@@ -65,6 +65,20 @@ abstract class WSSHooks {
 		return true;
 	}
 
+	public static function onGetUserPermissionsErrors( $title, $user, $action, &$result ) {
+		// All other actions ( create, delete, move, ... ) will also check for edit, so we only use 'edit'.
+		if ( $action === 'edit' ) {
+			$ns = $title->getNamespace();
+			$space = Space::newFromConstant( $ns );
+			if ( $space && !$space->canEditPages( $user ) ) {
+				// User cannot edit pages in this space!
+				$result = 'wss-edit-protected-page';
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * At the end of Skin::buildSidebar().
 	 *

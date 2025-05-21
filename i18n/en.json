@@ -124,5 +124,10 @@
   "wss-pf-invalid-number": "The namespace parameter must be a positive number.",
   "wss-pf-no-admins-found": "No admins were found for namespace: $1",
   "wss-pf-no-valid-admins": "None of the admins for namespace: $1 are valid MediaWiki Users.",
-  "wss-space-not-wsspaces": "The space $1 is not managed by WSSpaces."
+  "wss-space-not-wsspaces": "The space $1 is not managed by WSSpaces.",
+  "group-wss-protected-editor": "Editors of protected spaces",
+  "group-wss-protected-editor-member": "Editor of protected spaces",
+  "right-wss-edit-protected": "Edit pages in protected spaces",
+  "action-wss-edit-protected": "edit pages in protected spaces",
+  "wss-edit-protected-page": "This space is protected, and you do not have the required rights to edit pages in protected spaces."
 }

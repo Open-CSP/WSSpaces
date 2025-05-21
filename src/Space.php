@@ -447,10 +447,13 @@ class Space {
 	/**
 	 * Returns true if and only if the current logged in user can edit this space.
 	 *
+	 * This is different from isProtected, which is about editing _pages in_ this space.
+	 *
+	 * @param User|null $user The user to check permissions for, or current user if not provided.
 	 * @return bool
 	 */
-	public function canEdit(): bool {
-		$user = \RequestContext::getMain()->getUser();
+	public function canEdit( $user = null ): bool {
+		$user ??= \RequestContext::getMain()->getUser();
 
 		if ( in_array( $user->getName(), $this->namespace_administrators, true ) ) {
 			// This user is a space administrator
@@ -460,6 +463,21 @@ class Space {
 		return MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
 			$user,
 			"wss-edit-all-spaces"
+		);
+	}
+
+	/**
+	 * Returns true if the current logged in user can edit pages in this space.
+	 * Other restrictions may also apply.
+	 *
+	 * @param User|null $user The user to check permissions for, or current user if not provided.
+	 * @return bool
+	 */
+	public function canEditPages( $user = null ): bool {
+		$user ??= \RequestContext::getMain()->getUser();
+		return MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
+			$user,
+			"wss-edit-protected"
 		);
 	}
 
