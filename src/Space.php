@@ -484,7 +484,7 @@ class Space {
 	 */
 	public function canEditPages( $user = null ): bool {
 		$user ??= \RequestContext::getMain()->getUser();
-		return MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
+		return !$this->is_protected || MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
 			$user,
 			"wss-edit-protected"
 		);
