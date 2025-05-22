@@ -26,6 +26,10 @@ for ($i = 50000; $i < 55000; $i++) {
 
 You can use the `{{#spaces:}}` parser function to get a comma-separated list of spaces defined by WSSpaces.
 
+### Retrieving data for a space
+
+You can use the `{{#spaceadmins:{{NAMESPACENUMBER}}}}` and `{{#spacedescription:{{NAMESPACENUMBER}}}}` and `{{#spacename:{{NAMESPACENUMBER}}}}` parser functions to get the list of admin names, description of the space, and long name of the space with Wikitext.
+
 ## Hooks
 
 WSSpaces defines several hooks to alter or extend its behaviour.
@@ -53,6 +57,7 @@ WSSpaces defines several rights.
 
 > Please note that administrators of a space are always able to edit the details of that
 > space, regardless of whether or not they have been assigned any of the rights below.
+> However, admins do not get the wss-edit-protected right by default, so they cannot edit "pages" in protected spaces.
 
 ### `wss-edit-all-spaces`
 
@@ -76,6 +81,10 @@ Whether the user is able to view the admins for a space or not.
 
 Whether the user is able to view the overview of spaces or not.
 
+### `wss-edit-protected`
+
+Whether the user is able to edit pages in "protected" spaces.
+
 ## API modules
 
 WSSpaces defines several API modules. The documentation of these API modules can be found through
@@ -91,3 +100,4 @@ Furthermore, the following API list (`?action=query`) modules are available:
 
 * `spaces`
 * `spaceadmins`
+* `singlespace`
