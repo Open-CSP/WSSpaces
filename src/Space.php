@@ -41,6 +41,11 @@ class Space {
 	private $is_archived;
 
 	/**
+	 * @var bool
+	 */
+	private $is_protected;
+
+	/**
 	 * @var array
 	 */
 	private $namespace_administrators;
@@ -60,6 +65,7 @@ class Space {
 	 * @param User $namespace_owner The owner of the namespace.
 	 * @param bool $is_archived Whether or not the space is archived.
 	 * @param array $namespace_administrators The administrators of this namespace.
+	 * @param bool $is_protected Whether or not the space is (edit) protected.
 	 */
 	private function __construct(
 		string $namespace_key,
@@ -68,7 +74,8 @@ class Space {
 		string $description,
 		User $namespace_owner,
 		bool $is_archived = false,
-		array $namespace_administrators = []
+		array $namespace_administrators = [],
+		bool $is_protected = false
 	) {
 		if ( $namespace_id % 2 !== 0 ) {
 			throw new \InvalidArgumentException(
@@ -90,6 +97,7 @@ class Space {
 		$this->namespace_id    = $namespace_id;
 		$this->talkspace_id    = $namespace_id + 1;
 		$this->is_archived     = $is_archived;
+		$this->is_protected    = $is_protected;
 
 		$this->namespace_name = $namespace_name;
 
@@ -171,11 +179,19 @@ class Space {
 	 */
 	private static function newFromRow( array $condition ) {
 		$loadBalancer = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$fields = [
+			'namespace_id',
+			'namespace_key',
+			'namespace_name',
+			'description',
+			'creator_id',
+			'archived'
+		];
 
 		if ( method_exists( $loadBalancer, 'getConnection' ) ) {
-			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
+			$dbr = $loadBalancer->getConnection( DB_REPLICA );
 		} else {
-			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnectionRef( DB_REPLICA );
+			$dbr = $loadBalancer->getConnectionRef( DB_REPLICA );
 		}
 
 		// It might happen that this function is called during run of update.php,
@@ -183,8 +199,11 @@ class Space {
 		if ( !$dbr->tableExists( 'wss_namespaces', __METHOD__ ) ) {
 			return false;
 		}
+		if ( $dbr->fieldExists( 'wss_namespaces', 'protected', __METHOD__ ) ) {
+			$fields[] = 'protected';
+		}
 		$namespace = $dbr->newSelectQueryBuilder()->select(
-			[ 'namespace_id', 'namespace_key', 'namespace_name', 'description', 'creator_id', 'archived' ]
+			$fields
 		)->from(
 			'wss_namespaces'
 		)->where(
@@ -218,7 +237,8 @@ class Space {
 			$namespace->description,
 			$user,
 			$namespace->archived,
-			$namespace_administrators
+			$namespace_administrators,
+			$namespace->protected ?? false
 		);
 	}
 
@@ -285,6 +305,15 @@ class Space {
 	}
 
 	/**
+	 * Returns true if and only if the Space is edit protected
+	 *
+	 * @return bool
+	 */
+	public function isProtected(): bool {
+		return $this->is_protected;
+	}
+
+	/**
 	 * Returns the description of this space.
 	 *
 	 * @return string
@@ -320,6 +349,7 @@ class Space {
 	 *
 	 * @param string $name
 	 * @throws \ConfigException
+	 * @return void
 	 */
 	public function setKey( string $name ) {
 		$this->namespace_key = $name;
@@ -329,6 +359,7 @@ class Space {
 	 * Sets the display name for this namespace.
 	 *
 	 * @param string $name
+	 * @return void
 	 */
 	public function setName( string $name ) {
 		$this->namespace_name = $name;
@@ -338,6 +369,7 @@ class Space {
 	 * Sets the description for this Space.
 	 *
 	 * @param string $description
+	 * @return void
 	 */
 	public function setDescription( string $description ) {
 		if ( empty( $description ) ) {
@@ -351,6 +383,7 @@ class Space {
 	 * Sets the owner of this Space.
 	 *
 	 * @param User $owner
+	 * @return void
 	 */
 	public function setOwner( User $owner ) {
 		if ( $owner->isAnon() ) {
@@ -364,6 +397,7 @@ class Space {
 	 * Sets the administrators of this space.
 	 *
 	 * @param string[] $administrators
+	 * @return void
 	 */
 	public function setSpaceAdministrators( array $administrators ) {
 		$this->namespace_administrators = $administrators;
@@ -373,9 +407,20 @@ class Space {
 	 * Sets the archived status of this Space.
 	 *
 	 * @param bool $is_archived
+	 * @return void
 	 */
 	public function setArchived( bool $is_archived = true ) {
 		$this->is_archived = $is_archived;
+	}
+
+	/**
+	 * Sets the protected status of this Space.
+	 *
+	 * @param bool $is_protected
+	 * @return void
+	 */
+	public function setProtected( bool $is_protected = true ) {
+		$this->is_protected = $is_protected;
 	}
 
 	/**
@@ -411,10 +456,13 @@ class Space {
 	/**
 	 * Returns true if and only if the current logged in user can edit this space.
 	 *
+	 * This is different from isProtected, which is about editing _pages in_ this space.
+	 *
+	 * @param User|null $user The user to check permissions for, or current user if not provided.
 	 * @return bool
 	 */
-	public function canEdit(): bool {
-		$user = \RequestContext::getMain()->getUser();
+	public function canEdit( $user = null ): bool {
+		$user ??= \RequestContext::getMain()->getUser();
 
 		if ( in_array( $user->getName(), $this->namespace_administrators, true ) ) {
 			// This user is a space administrator
@@ -424,6 +472,21 @@ class Space {
 		return MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
 			$user,
 			"wss-edit-all-spaces"
+		);
+	}
+
+	/**
+	 * Returns true if the current logged in user can edit pages in this space.
+	 * Other restrictions may also apply.
+	 *
+	 * @param User|null $user The user to check permissions for, or current user if not provided.
+	 * @return bool
+	 */
+	public function canEditPages( $user = null ): bool {
+		$user ??= \RequestContext::getMain()->getUser();
+		return MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
+			$user,
+			"wss-edit-protected"
 		);
 	}
 

@@ -29,6 +29,7 @@
   "wss-unarchive-space-form-submit-text": "Unarchive this space",
   "wss-add-space-form-displayname-label": "Display name",
   "wss-add-space-form-description-label": "Description",
+  "wss-add-space-form-protected-label": "Protected",
   "wss-add-space-form-namespace-label": "Namespace Key",
   "wss-add-space-form-namespacename-label": "Namespace Name",
   "wss-add-space-form-namespace-help": "Namespace key must be unique. It will be used as a prefix for the pages in this space.",
@@ -107,6 +108,7 @@
   "wss-api-namespace-key-param": "The (case-sensitive) key of the namespace you want to get all the data for.",
   "wss-api-namespace-name-param": "The (case-sensitive) name of the namespace you want to get all the data for.",
   "wss-api-namespace-param": "The namespace you want to get the list of admins for.",
+  "wss-api-nsprotected-param": "Should the space be edit-protected to only certain users? String 'false' for not protected, unset for default (false on creation), anything else will make it protected.",
   "apihelp-addspace-example-foo": "Create the space 'Foo'.",
   "apihelp-archivespace-example-foo": "Archive the space 'Foo'.",
   "apihelp-unarchivespace-example-foo": "Unarchive the space 'Foo'.",
@@ -122,5 +124,10 @@
   "wss-pf-invalid-number": "The namespace parameter must be a positive number.",
   "wss-pf-no-admins-found": "No admins were found for namespace: $1",
   "wss-pf-no-valid-admins": "None of the admins for namespace: $1 are valid MediaWiki Users.",
-  "wss-space-not-wsspaces": "The space $1 is not managed by WSSpaces."
+  "wss-space-not-wsspaces": "The space $1 is not managed by WSSpaces.",
+  "group-wss-protected-editor": "Editors of protected spaces",
+  "group-wss-protected-editor-member": "Editor of protected spaces",
+  "right-wss-edit-protected": "Edit pages in protected spaces",
+  "action-wss-edit-protected": "edit pages in protected spaces",
+  "wss-edit-protected-page": "This space is protected, and you do not have the required rights to edit pages in protected spaces."
 }

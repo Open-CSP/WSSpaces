@@ -66,6 +66,30 @@ abstract class WSSHooks {
 	}
 
 	/**
+	 * Disallow edits on pages in protected spaces
+	 *
+	 * @param \Title $title Title that is being edited
+	 * @param \User $user User that tries the edit
+	 * @param string $action Action that the user tries to do
+	 * @param &string $result Error message to display.
+	 *
+	 * @return bool Whether the user is allowed to edit
+	 */
+	public static function onGetUserPermissionsErrors( $title, $user, $action, &$result ) {
+		// All other actions ( create, delete, move, ... ) will also check for edit, so we only use 'edit'.
+		if ( $action === 'edit' ) {
+			$ns = $title->getNamespace();
+			$space = Space::newFromConstant( $ns );
+			if ( $space && !$space->canEditPages( $user ) ) {
+				// User cannot edit pages in this space!
+				$result = 'wss-edit-protected-page';
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * At the end of Skin::buildSidebar().
 	 *
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/SkinBuildSidebar
@@ -141,6 +165,11 @@ abstract class WSSHooks {
 				'field' => 'namespace_name',
 				'file' => "wss_namespaces_patch_1.sql"
 			],
+			[
+				'table' => 'wss_namespaces',
+				'newfield' => 'protected',
+				'file' => "wss_namespaces_patch_2.sql"
+			],
 		];
 
 		foreach ( $sql_patch_files as $patch ) {
@@ -152,6 +181,8 @@ abstract class WSSHooks {
 
 			if ( isset( $patch['field'] ) ) {
 				$updater->modifyExtensionField( $patch[ 'table' ], $patch[ 'field' ], $path );
+			} elseif ( isset( $patch['newfield'] ) ) {
+				$updater->addExtensionField( $patch[ 'table' ], $patch[ 'newfield' ], $path );
 			} else {
 				$updater->modifyExtensionTable( $patch[ 'table' ], $path );
 			}

@@ -9,6 +9,7 @@ use User;
 use WSS\NamespaceRepository;
 use WSS\Space;
 use WSS\Validation\AddSpaceValidationCallback;
+use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiEditSpace extends ApiBase {
 	/**
@@ -51,6 +52,7 @@ class ApiEditSpace extends ApiBase {
 		$ns_name = $request_params["nsname"] ?? null;
 		$ns_description = $request_params["nsdescription"] ?? null;
 		$ns_admins = $request_params[ "nsadmins" ] ?? null;
+		$ns_protected = $request_params[ "protected" ] ?? null;
 
 		$this->validateParams( $old_space, $ns_id, $ns_key, $ns_name, $ns_description );
 
@@ -73,6 +75,9 @@ class ApiEditSpace extends ApiBase {
 				$this->validateAdmins( $ns_admins );
 				$new_space->setSpaceAdministrators( $ns_admins );
 			}
+		}
+		if ( $ns_protected !== null ) {
+			$new_space->setProtected( $ns_protected !== 'false' );
 		}
 
 		try {
@@ -151,25 +156,30 @@ class ApiEditSpace extends ApiBase {
 	public function getAllowedParams(): array {
 		return [
 			'nsid' => [
-				ApiBase::PARAM_TYPE => "integer",
+				ParamValidator::PARAM_TYPE => "integer",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsid-param"
 			],
 			'nskey' => [
-				ApiBase::PARAM_TYPE => "string",
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nskey-param"
 			],
 			'nsname' => [
-				ApiBase::PARAM_TYPE => "string",
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsname-param"
 			],
 			'nsdescription' => [
-				ApiBase::PARAM_TYPE => "string",
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsdescription-param"
 			],
 			'nsadmins' => [
-				ApiBase::PARAM_TYPE => "string",
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsadmins-param"
-			]
+			],
+			'nsprotected' => [
+				// We do not use 'boolean' type, because we want to distinguish the 3 values 'true', 'false' and "unset"
+				ParamValidator::PARAM_TYPE => "string",
+				ApiBase::PARAM_HELP_MSG => "wss-api-nsprotected-param"
+			],
 		];
 	}
 

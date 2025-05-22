@@ -57,6 +57,7 @@ class EditSpaceSubmitCallback implements SubmitCallback {
 		$new_space->setDescription( $form_data['description'] );
 		$new_space->setName( $form_data['namespace_name'] );
 		$new_space->setSpaceAdministrators( explode( "\n", $form_data['administrators'] ) );
+		$new_space->setProtected( $form_data[ 'protected' ] ?? false );
 
 		try {
 			$namespace_repository->updateSpace( $old_space, $new_space );
