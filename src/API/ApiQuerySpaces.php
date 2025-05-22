@@ -36,6 +36,7 @@ class ApiQuerySpaces extends \ApiQueryBase {
 			$result->addValue( $space_id, "description", $space->getDescription() );
 			$result->addValue( $space_id, "owner", $space->getOwner() );
 			$result->addValue( $space_id, "admins", $space->getSpaceAdministrators() );
+			$result->addValue( $space_id, "protected", $space->isProtected() ? 'true' : 'false' );
 		}
 	}
 
