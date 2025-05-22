@@ -65,6 +65,16 @@ abstract class WSSHooks {
 		return true;
 	}
 
+	/**
+	 * Disallow edits on pages in protected spaces
+	 *
+	 * @param \Title $title Title that is being edited
+	 * @param \User $user User that tries the edit
+	 * @param string $action Action that the user tries to do
+	 * @param &string $result Error message to display.
+	 *
+	 * @return bool Whether the user is allowed to edit
+	 */
 	public static function onGetUserPermissionsErrors( $title, $user, $action, &$result ) {
 		// All other actions ( create, delete, move, ... ) will also check for edit, so we only use 'edit'.
 		if ( $action === 'edit' ) {
@@ -171,7 +181,7 @@ abstract class WSSHooks {
 
 			if ( isset( $patch['field'] ) ) {
 				$updater->modifyExtensionField( $patch[ 'table' ], $patch[ 'field' ], $path );
-			} elseif ( isset ( $patch['newfield'] ) ) {
+			} elseif ( isset( $patch['newfield'] ) ) {
 				$updater->addExtensionField( $patch[ 'table' ], $patch[ 'newfield' ], $path );
 			} else {
 				$updater->modifyExtensionTable( $patch[ 'table' ], $path );

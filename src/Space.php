@@ -200,7 +200,7 @@ class Space {
 			return false;
 		}
 		if ( $dbr->fieldExists( 'wss_namespaces', 'protected', __METHOD__ ) ) {
-			$fields []= 'protected';
+			$fields[] = 'protected';
 		}
 		$namespace = $dbr->newSelectQueryBuilder()->select(
 			$fields
@@ -306,6 +306,8 @@ class Space {
 
 	/**
 	 * Returns true if and only if the Space is edit protected
+	 *
+	 * @return bool
 	 */
 	public function isProtected(): bool {
 		return $this->is_protected;
@@ -347,6 +349,7 @@ class Space {
 	 *
 	 * @param string $name
 	 * @throws \ConfigException
+	 * @return void
 	 */
 	public function setKey( string $name ) {
 		$this->namespace_key = $name;
@@ -356,6 +359,7 @@ class Space {
 	 * Sets the display name for this namespace.
 	 *
 	 * @param string $name
+	 * @return void
 	 */
 	public function setName( string $name ) {
 		$this->namespace_name = $name;
@@ -365,6 +369,7 @@ class Space {
 	 * Sets the description for this Space.
 	 *
 	 * @param string $description
+	 * @return void
 	 */
 	public function setDescription( string $description ) {
 		if ( empty( $description ) ) {
@@ -378,6 +383,7 @@ class Space {
 	 * Sets the owner of this Space.
 	 *
 	 * @param User $owner
+	 * @return void
 	 */
 	public function setOwner( User $owner ) {
 		if ( $owner->isAnon() ) {
@@ -391,6 +397,7 @@ class Space {
 	 * Sets the administrators of this space.
 	 *
 	 * @param string[] $administrators
+	 * @return void
 	 */
 	public function setSpaceAdministrators( array $administrators ) {
 		$this->namespace_administrators = $administrators;
@@ -400,6 +407,7 @@ class Space {
 	 * Sets the archived status of this Space.
 	 *
 	 * @param bool $is_archived
+	 * @return void
 	 */
 	public function setArchived( bool $is_archived = true ) {
 		$this->is_archived = $is_archived;
@@ -409,6 +417,7 @@ class Space {
 	 * Sets the protected status of this Space.
 	 *
 	 * @param bool $is_protected
+	 * @return void
 	 */
 	public function setProtected( bool $is_protected = true ) {
 		$this->is_protected = $is_protected;
