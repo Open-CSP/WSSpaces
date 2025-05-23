@@ -29,6 +29,7 @@ abstract class WSSHooks {
 		$parser->setFunctionHook( 'spaceadmins', [ $functions, 'renderSpaceAdmins' ] );
 		$parser->setFunctionHook( 'spacedescription', [ $functions, 'renderSpaceDescription' ] );
 		$parser->setFunctionHook( 'spacename', [ $functions, 'renderSpaceName' ] );
+		$parser->setFunctionHook( 'spaceprotected', [ $functions, 'renderSpaceProtected' ] );
 		$parser->setFunctionHook( 'spaces', [ $functions, 'renderSpaces' ] );
 	}
 
