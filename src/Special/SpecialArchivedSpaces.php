@@ -53,7 +53,11 @@ class SpecialArchivedSpaces extends SpecialPage {
 	 * @inheritDoc
 	 */
 	public function getDescription() {
-		return $this->msg( 'wss-archived-spaces-header' );
+		$msg = $this->msg( 'wss-archived-spaces-header' );
+		if ( version_compare( MW_VERSION, '1.41' ) < 0 ) {
+			return $msg->plain();
+		}
+		return $msg;
 	}
 
 	/**
