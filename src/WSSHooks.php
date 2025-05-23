@@ -4,6 +4,7 @@ namespace WSS;
 
 use ConfigException;
 use MediaWiki\Auth\AuthManager;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Session\Session;
 use MWException;
 use Parser;
@@ -77,8 +78,15 @@ abstract class WSSHooks {
 	 * @return bool Whether the user is allowed to edit
 	 */
 	public static function onGetUserPermissionsErrors( $title, $user, $action, &$result ) {
-		// All other actions ( create, delete, move, ... ) will also check for edit, so we only use 'edit'.
-		if ( $action === 'edit' ) {
+		$config = MediaWikiServices::getInstance()->getMainConfig();
+
+		if ( !$config->get( 'WSSpacesEnforceProtection' ) ) {
+			return true;
+		}
+
+		$restrictedActions = $config->get( 'WSSpacesProtectedActions' );
+
+		if ( in_array( $action, $restrictedActions ) ) {
 			$ns = $title->getNamespace();
 			$space = Space::newFromConstant( $ns );
 			if ( $space && !$space->canEditPages( $user ) ) {
@@ -87,6 +95,7 @@ abstract class WSSHooks {
 				return false;
 			}
 		}
+
 		return true;
 	}
 
