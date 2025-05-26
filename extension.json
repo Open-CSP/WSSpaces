@@ -126,6 +126,18 @@
     },
     "WSSpacesAutoAddAdminsToUserGroups": {
       "value": false
+    },
+    "WSSpacesEnforceProtection": {
+      "value": false
+    },
+    "WSSpacesProtectedActions": {
+      "value": [
+        "edit",
+        "create",
+        "delete",
+        "move"
+      ],
+      "merge_strategy": "array_merge"
     }
   },
   "APIModules": {
