@@ -68,12 +68,12 @@ class ParserFunctions {
 				return implode( ",", $spaces );
 		}
 
-		/**
-		 * Render the output of {{#spacename: namespace}}.
-		 *
-		 * @param Parser $parser
-		 * @return string
-		 */
+	/**
+	 * Render the output of {{#spacename: namespace}}.
+	 *
+	 * @param Parser $parser
+	 * @return string
+	 */
 	public function renderSpaceName( Parser $parser, $namespace = '' ) : string {
 		$ns_valid = $this->validateNamespace( $namespace );
 		if ( is_string( $ns_valid ) ) {
@@ -89,12 +89,12 @@ class ParserFunctions {
 		return $space->getName();
 	}
 
-		/**
-		 * Render the output of {{#spacedescription: namespace}}.
-		 *
-		 * @param Parser $parser
-		 * @return string
-		 */
+	/**
+	 * Render the output of {{#spacedescription: namespace}}.
+	 *
+	 * @param Parser $parser
+	 * @return string
+	 */
 	public function renderSpaceDescription( Parser $parser, $namespace = '' ) : string {
 		$ns_valid = $this->validateNamespace( $namespace );
 		if ( is_string( $ns_valid ) ) {
@@ -108,6 +108,27 @@ class ParserFunctions {
 		}
 
 		return $space->getDescription();
+	}
+
+	/**
+	 * Render the output of {{#spaceprotected: namespace}}.
+	 *
+	 * @param Parser $parser
+	 * @return string Either "true", "false" or an error message
+	 */
+	public function renderSpaceProtected( Parser $parser, $namespace = '' ) : string {
+		$ns_valid = $this->validateNamespace( $namespace );
+		if ( is_string( $ns_valid ) ) {
+			// Namespace was invalid
+			return $ns_valid;
+		}
+
+		$space = Space::newFromConstant( $namespace );
+		if ( !$space instanceof Space ) {
+			return wfMessage( "wss-space-not-wsspaces", $namespace );
+		}
+
+		return $space->isProtected() ? 'true' : 'false';
 	}
 
 	/**

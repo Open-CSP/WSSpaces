@@ -7,6 +7,7 @@ use MWException;
 use WSS\NamespaceRepository;
 use WSS\Space;
 use WSS\Validation\AddSpaceValidationCallback;
+use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiAddSpace extends ApiBase {
 	/**
@@ -39,6 +40,7 @@ class ApiAddSpace extends ApiBase {
 		$ns_description = $request_params["nsdescription"];
 		$ns_admins = $request_params["nsadmins"];
 		$ns_admins = explode( ",", $ns_admins );
+		$ns_protected = isset( $request_params[ "nsprotected" ] ) && $request_params[ "nsprotected" ] !== 'false';
 
 		$current_user = \RequestContext::getMain()->getUser();
 
@@ -49,6 +51,8 @@ class ApiAddSpace extends ApiBase {
 		}
 
 		$space = Space::newFromValues( $ns_key, $ns_name, $ns_description, $current_user );
+		$space->setProtected( $ns_protected );
+
 		$namespace_repository = new NamespaceRepository();
 
 		$namespace_id = $namespace_repository->addSpace( $space );
@@ -130,21 +134,26 @@ class ApiAddSpace extends ApiBase {
 	public function getAllowedParams(): array {
 		return [
 			'nskey' => [
-				ApiBase::PARAM_TYPE => "string",
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nskey-param"
 			],
 			'nsname' => [
-				ApiBase::PARAM_TYPE => "string",
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsname-param"
 			],
 			'nsdescription' => [
-				ApiBase::PARAM_TYPE => "string",
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsdescription-param"
 			],
 			'nsadmins' => [
-				ApiBase::PARAM_TYPE => "string",
+				ParamValidator::PARAM_TYPE => "string",
 				ApiBase::PARAM_HELP_MSG => "wss-api-nsadmins-param"
-			]
+			],
+			'nsprotected' => [
+				// We use string instead of boolean for consistency with EditSpace api
+				ParamValidator::PARAM_TYPE => "string",
+				ApiBase::PARAM_HELP_MSG => "wss-api-nsprotected-param"
+			],
 		];
 	}
 

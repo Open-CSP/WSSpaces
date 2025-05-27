@@ -83,6 +83,11 @@ class EditSpaceForm extends AbstractForm {
 					return $this->getValidationCallback()->validateRequired( $field );
 				}
 			],
+			'protected' => [
+				'label-message' => 'wss-add-space-form-protected-label',
+				'type' => 'check',
+				'default' => $this->space->isProtected(),
+			],
 			'administrators' => [
 				'label-message' => 'wss-manage-space-form-administrators-label',
 				'type' => 'usersmultiselect',

@@ -25,6 +25,7 @@
   },
   "Hooks": {
     "SecuritySensitiveOperationStatus": "WSS\\WSSHooks::onSecuritySensitiveOperationStatus",
+    "getUserPermissionsErrors": "WSS\\WSSHooks::onGetUserPermissionsErrors",
     "SkinBuildSidebar": "WSS\\WSSHooks::onSkinBuildSidebar",
     "LoadExtensionSchemaUpdates": "WSS\\WSSHooks::onLoadExtensionSchemaUpdates",
     "CanonicalNamespaces": "WSS\\WSSHooks::onCanonicalNamespaces",
@@ -42,7 +43,8 @@
     "wss-add-space",
     "wss-archive-space",
     "wss-view-space-admins",
-    "wss-view-spaces-overview"
+    "wss-view-spaces-overview",
+    "wss-edit-protected"
   ],
   "GroupPermissions": {
     "sysop": {
@@ -58,6 +60,9 @@
       "wss-archive-space": true,
       "wss-view-space-admins": true,
       "wss-view-spaces-overview": true
+    },
+    "wss-protected-editor": {
+      "wss-edit-protected": true
     }
   },
   "ResourceModules": {
@@ -121,6 +126,18 @@
     },
     "WSSpacesAutoAddAdminsToUserGroups": {
       "value": false
+    },
+    "WSSpacesEnforceProtection": {
+      "value": false
+    },
+    "WSSpacesProtectedActions": {
+      "value": [
+        "edit",
+        "create",
+        "delete",
+        "move"
+      ],
+      "merge_strategy": "array_merge"
     }
   },
   "APIModules": {

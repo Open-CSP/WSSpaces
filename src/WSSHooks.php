@@ -4,6 +4,7 @@ namespace WSS;
 
 use ConfigException;
 use MediaWiki\Auth\AuthManager;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Session\Session;
 use MWException;
 use Parser;
@@ -29,6 +30,7 @@ abstract class WSSHooks {
 		$parser->setFunctionHook( 'spaceadmins', [ $functions, 'renderSpaceAdmins' ] );
 		$parser->setFunctionHook( 'spacedescription', [ $functions, 'renderSpaceDescription' ] );
 		$parser->setFunctionHook( 'spacename', [ $functions, 'renderSpaceName' ] );
+		$parser->setFunctionHook( 'spaceprotected', [ $functions, 'renderSpaceProtected' ] );
 		$parser->setFunctionHook( 'spaces', [ $functions, 'renderSpaces' ] );
 	}
 
@@ -60,6 +62,38 @@ abstract class WSSHooks {
 			$status = AuthManager::SEC_REAUTH;
 		} else {
 			$status = AuthManager::SEC_OK;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Disallow edits on pages in protected spaces
+	 *
+	 * @param \Title $title Title that is being edited
+	 * @param \User $user User that tries the edit
+	 * @param string $action Action that the user tries to do
+	 * @param &string $result Error message to display.
+	 *
+	 * @return bool Whether the user is allowed to edit
+	 */
+	public static function onGetUserPermissionsErrors( $title, $user, $action, &$result ) {
+		$config = MediaWikiServices::getInstance()->getMainConfig();
+
+		if ( !$config->get( 'WSSpacesEnforceProtection' ) ) {
+			return true;
+		}
+
+		$restrictedActions = $config->get( 'WSSpacesProtectedActions' );
+
+		if ( in_array( $action, $restrictedActions ) ) {
+			$ns = $title->getNamespace();
+			$space = Space::newFromConstant( $ns );
+			if ( $space && !$space->canEditPages( $user ) ) {
+				// User cannot edit pages in this space!
+				$result = 'wss-edit-protected-page';
+				return false;
+			}
 		}
 
 		return true;
@@ -141,6 +175,11 @@ abstract class WSSHooks {
 				'field' => 'namespace_name',
 				'file' => "wss_namespaces_patch_1.sql"
 			],
+			[
+				'table' => 'wss_namespaces',
+				'newfield' => 'protected',
+				'file' => "wss_namespaces_patch_2.sql"
+			],
 		];
 
 		foreach ( $sql_patch_files as $patch ) {
@@ -152,6 +191,8 @@ abstract class WSSHooks {
 
 			if ( isset( $patch['field'] ) ) {
 				$updater->modifyExtensionField( $patch[ 'table' ], $patch[ 'field' ], $path );
+			} elseif ( isset( $patch['newfield'] ) ) {
+				$updater->addExtensionField( $patch[ 'table' ], $patch[ 'newfield' ], $path );
 			} else {
 				$updater->modifyExtensionTable( $patch[ 'table' ], $path );
 			}

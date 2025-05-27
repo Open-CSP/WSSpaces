@@ -1,4 +1,4 @@
-#actually, this is not necessary: VARCHAR(64) is the same as VARCHAR(128) in sqlite
+--actually, this is not necessary: VARCHAR(64) is the same as VARCHAR(128) in sqlite
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE /*_*/new_wss_namespaces (
