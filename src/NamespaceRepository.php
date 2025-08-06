@@ -168,6 +168,27 @@ class NamespaceRepository {
 		return $buffer;
 	}
 
+	public function getSpacesForAdmin( int $admin_user_id ): array {
+		$dbr = self::getConnection( $this->dbLoadBalancer );
+
+		$result = $dbr->newSelectQueryBuilder()->select(
+			'*'
+		)->from(
+			'wss_namespace_admins'
+		)->join(
+			'wss_namespaces', 'spaces', 'spaces.namespace_id=wss_namespace_admins.namespace_id'
+		)->where( [
+			'admin_user_id' => $admin_user_id
+		] )->caller( __METHOD__ )->fetchResultSet();
+
+		$buffer = [];
+		foreach( $result as $spaceRow ) {
+			$buffer[] = Space::newFromDbRow( $spaceRow, $dbr );
+		}
+
+		return $buffer;
+	}
+
 	/**
 	 * Returns the list of unarchived dynamic spaces defined by the WSS extension. When the first parameter is true,
 	 * the key will be the name of the namespace, and the value the constant, otherwise
