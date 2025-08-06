@@ -436,7 +436,9 @@ class NamespaceRepository {
 			// We only remove groups that the user is actually part of
 			$groupsToRemove = array_intersect( $groupsToRemove, $admin_user_groups );
 
-			$this->removeUserFromUserGroups( $admin_object, $groupsToRemove );
+			if ( !empty( $groupsToRemove ) ) {
+				$this->removeUserFromUserGroups( $admin_object, $groupsToRemove );
+			}
 		}
 	}
 
@@ -451,17 +453,19 @@ class NamespaceRepository {
 			// Only add to groups that user is not in yet
 			$groupsToAdd = array_diff( $groupsToAdd, $groups );
 
-			$this->addUserToUserGroups( $admin_object, $groupsToAdd );
+			if ( !empty( $groupsToAdd ) ) {
+				$this->addUserToUserGroups( $admin_object, $groupsToAdd );
+			}
 		}
 	}
 
 	/**
-	 * Adds a user to a user group and notifies MediaWiki of this.
+	 * Adds a user to user groups and notifies MediaWiki of this.
 	 *
 	 * @param User $user The user object for the user that is being added.
 	 * @param string[] $user_groups The user groups that the user is being added to.
 	 */
-	private function addUserToUserGroup(
+	private function addUserToUserGroups(
 		User $user,
 		array $user_groups
 	): void {
@@ -470,7 +474,7 @@ class NamespaceRepository {
 		$oldGroupMemberships = $this->getUserGroupManager()->getUserGroupMemberships( $user );
 
 		foreach( $user_groups as $user_group ) {
-			$groupManager->addUserToGroup( $user, $user_group );
+			$this->getUserGroupManager()->addUserToGroup( $user, $user_group );
 			$user_messages []= $this->getUserMessage( $user_group );
 		}
 
@@ -491,18 +495,18 @@ class NamespaceRepository {
 	}
 
 	/**
-	 * Removes a user from a user group and notifies MediaWiki of this.
+	 * Removes a user from user groups and notifies MediaWiki of this.
 	 *
 	 * @param User $user The user object for the user that is being removed.
 	 * @param string[] $userGroups The user group that the user is being removed from.
 	 */
-	private function removeUserFromUserGroup( User $user, array $userGroups ): void {
+	private function removeUserFromUserGroups( User $user, array $userGroups ): void {
 		$user_messages = [];
 
 		$oldGroupMemberships = $this->getUserGroupManager()->getUserGroupMemberships( $user );
 
 		foreach ( $userGroups as $userGroup ) {
-			$groupManager->removeUserFromGroup( $user, $userGroup );
+			$this->getUserGroupManager()->removeUserFromGroup( $user, $userGroup );
 			$user_messages []= $this->getUserMessage( $userGroup );
 		}
 
