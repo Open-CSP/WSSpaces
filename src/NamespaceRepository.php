@@ -22,6 +22,10 @@ class NamespaceRepository {
 	// phpcs:ignore
 	const MIN_SPACE_ID = 50000;
 
+	const ADMIN_GROUP = 'SpaceAdmin';
+
+	const GROUP_CHANGE_REASON = 'Namespace admin changes';
+
 	/**
 	 * @var array
 	 */
@@ -31,6 +35,8 @@ class NamespaceRepository {
 	 * @var array
 	 */
 	private $extension_namespaces;
+
+	private UserGroupManager $user_group_manager;
 
 	/**
 	 * @var DBLoadBalancer
@@ -386,39 +392,9 @@ class NamespaceRepository {
 		// Check which admins remained the same in the new input.
 		$intersection_of_admins = array_intersect( $mw_saved_admins, $admin_input );
 
-		// Get the MW User Group Manager and prepare the names for the space.
-		$user_group_manager = MediaWikiServices::getInstance()->getUserGroupManager();
-
-		// If it is required that Admins are automatically removed to User Groups, perform the remove operation here:
+		// If it is required that Admins are automatically removed from User Groups, perform the remove operation here:
 		if ( MediaWikiServices::getInstance()->getMainConfig()->get( "WSSpacesAutoAddAdminsToUserGroups" ) ) {
-			foreach ( $difference_of_admins as $admin ) {
-				$admin_object = User::newFromId( (int)$admin );
-				if ( !$admin_object->loadFromDatabase() ) {
-					// If the user doesn't exist, we can't change their usergroups
-					continue;
-				}
-
-				$this->removeUserFromUserGroup( $admin_object, $space->getGroupName(), $user_group_manager );
-
-				// Check if a user is part of at least one space admin group. If so,
-				// allow them to keep the SpaceAdmin group membership.
-				$remain_space_admin = false;
-				$admin_user_groups = $user_group_manager->getUserGroups( $admin_object );
-
-				foreach ( $admin_user_groups as $checked_group ) {
-					if ( ( strpos( $checked_group, "Admin" ) !== false ) && $checked_group !== "SpaceAdmin" ) {
-						$remain_space_admin = true;
-					}
-				}
-
-				// Remove the user from the SpaceAdmin group if they are not allowed to remain space admin.
-				$admin_user_groups = $user_group_manager->getUserGroups( $admin_object );
-				if ( !$remain_space_admin ) {
-					if ( in_array( "SpaceAdmin", $admin_user_groups, true ) ) {
-						$this->removeUserFromUserGroup( $admin_object, "SpaceAdmin", $user_group_manager );
-					}
-				}
-			}
+			$this->removeAdminUserGroups( $difference_of_admins, $space );
 		}
 
 		// Do the actual database changes.
@@ -430,73 +406,124 @@ class NamespaceRepository {
 
 		// If it is required that Admins are automatically added to User Groups, perform the add operation here:
 		if ( MediaWikiServices::getInstance()->getMainConfig()->get( "WSSpacesAutoAddAdminsToUserGroups" ) ) {
-			foreach ( $admin_input as $admin ) {
-				$admin_object = User::newFromId( $admin );
+			$this->addAdminUserGroups( $admin_input, $space );
+		}
+	}
 
-				// If the user was not an overarching space admin before, add them to this group now.
-				if ( !in_array( "SpaceAdmin", $user_group_manager->getUserGroups( $admin_object ), true ) ) {
-					$this->addUserToUserGroup( $admin_object, "SpaceAdmin", $user_group_manager );
-				}
+	private function removeAdminUserGroups( $difference_of_admins, $space ) {
+		foreach ( $difference_of_admins as $admin ) {
+			$admin_object = User::newFromId( (int)$admin );
+			if ( !$admin_object->loadFromDatabase() ) {
+				// If the user doesn't exist, we can't change their usergroups
+				continue;
+			}
 
-				// If the user was not an admin of the altered space before, add them now.
-				// Also send the space along, just in case no system message was set.
-				if ( !in_array( $admin, $intersection_of_admins, false ) ) {
-					$this->addUserToUserGroup( $admin_object, $space->getGroupName(), $user_group_manager );
+			$groupsToRemove = [ $space->getGroupName(), self::ADMIN_GROUP ];
+
+			// Check if a user is part of at least one other space admin group. If so,
+			// allow them to keep the SpaceAdmin group membership.
+			$admin_user_groups = $this->getUserGroupManager()->getUserGroups( $admin_object );
+			foreach ( $admin_user_groups as $checked_group ) {
+				if (
+					!in_array( $checked_group, $groupsToRemove ) &&
+					( strpos( $checked_group, "Admin" ) !== false )
+				) {
+					unset( $groupsToRemove[1] );
+					break;
 				}
+			}
+
+			// We only remove groups that the user is actually part of
+			$groupsToRemove = array_intersect( $groupsToRemove, $admin_user_groups );
+
+			if ( !empty( $groupsToRemove ) ) {
+				$this->removeUserFromUserGroups( $admin_object, $groupsToRemove );
+			}
+		}
+	}
+
+	private function addAdminUserGroups( $admin_input, $space ) {
+		foreach ( $admin_input as $admin ) {
+			$admin_object = User::newFromId( $admin );
+
+			$groups = $this->getUserGroupManager()->getUserGroups( $admin_object );
+
+			$groupsToAdd = [ $space->getGroupName(), self::ADMIN_GROUP ];
+
+			// Only add to groups that user is not in yet
+			$groupsToAdd = array_diff( $groupsToAdd, $groups );
+
+			if ( !empty( $groupsToAdd ) ) {
+				$this->addUserToUserGroups( $admin_object, $groupsToAdd );
 			}
 		}
 	}
 
 	/**
-	 * Adds a user to a user group and notifies MediaWiki of this.
+	 * Adds a user to user groups and notifies MediaWiki of this.
 	 *
 	 * @param User $user The user object for the user that is being added.
-	 * @param string $user_group The user group that the user is being added to.
-	 * @param UserGroupManager $groupManager The user group manager for the current context.
+	 * @param string[] $user_groups The user groups that the user is being added to.
 	 */
-	private function addUserToUserGroup(
+	private function addUserToUserGroups(
 		User $user,
-		string $user_group,
-		UserGroupManager $groupManager
+		array $user_groups
 	): void {
-		if ( ( wfMessage( "group-SpaceAdmin-member" )->exists() ) && ( $user_group === "SpaceAdmin" ) ) {
-			$user_message = wfMessage( "group-SpaceAdmin-member" )->parse();
-		} elseif ( wfMessage( "group-" . $user_group )->exists() ) {
-			$user_message = wfMessage( "group-" . $user_group )->parse();
-		} else {
-			$user_message = $user_group;
+		$user_messages = [];
+
+		$oldGroupMemberships = $this->getUserGroupManager()->getUserGroupMemberships( $user );
+
+		foreach( $user_groups as $user_group ) {
+			$this->getUserGroupManager()->addUserToGroup( $user, $user_group );
+			$user_messages []= $this->getUserMessage( $user_group );
 		}
+
+		$newGroupMemberships = $this->getUserGroupManager()->getUserGroupMemberships( $user );
 
 		MediaWikiServices::getInstance()->getHookContainer()->run(
 			"UserGroupsChanged",
-			[ $user, [ $user_message ], [], RequestContext::getMain()->getUser() ]
+			[
+				$user,
+				$user_messages,
+				[],
+				RequestContext::getMain()->getUser(),
+				self::GROUP_CHANGE_REASON,
+				$oldGroupMemberships,
+				$newGroupMemberships
+			]
 		);
-
-		$groupManager->addUserToGroup( $user, $user_group );
 	}
 
 	/**
-	 * Removes a user from a user group and notifies MediaWiki of this.
+	 * Removes a user from user groups and notifies MediaWiki of this.
 	 *
 	 * @param User $user The user object for the user that is being removed.
-	 * @param string $userGroup The user group that the user is being removede from.
-	 * @param UserGroupManager $groupManager The user group manager for the current context.
+	 * @param string[] $userGroups The user group that the user is being removed from.
 	 */
-	private function removeUserFromUserGroup( User $user, string $userGroup, UserGroupManager $groupManager ): void {
-		if ( ( wfMessage( "group-SpaceAdmin-member" )->exists() ) && ( $userGroup === "SpaceAdmin" ) ) {
-			$user_message = wfMessage( "group-SpaceAdmin-member" )->parse();
-		} elseif ( wfMessage( "group-" . $userGroup )->exists() ) {
-			$user_message = wfMessage( "group-" . $userGroup )->parse();
-		} else {
-			$user_message = $userGroup;
+	private function removeUserFromUserGroups( User $user, array $userGroups ): void {
+		$user_messages = [];
+
+		$oldGroupMemberships = $this->getUserGroupManager()->getUserGroupMemberships( $user );
+
+		foreach ( $userGroups as $userGroup ) {
+			$this->getUserGroupManager()->removeUserFromGroup( $user, $userGroup );
+			$user_messages []= $this->getUserMessage( $userGroup );
 		}
+
+		$newGroupMemberships = $this->getUserGroupManager()->getUserGroupMemberships( $user );
 
 		MediaWikiServices::getInstance()->getHookContainer()->run(
 			"UserGroupsChanged",
-			[ $user, [], [ $user_message ], RequestContext::getMain()->getUser() ]
+			[
+				$user,
+				[],
+				$user_messages,
+				RequestContext::getMain()->getUser(),
+				self::GROUP_CHANGE_REASON,
+				$oldGroupMemberships,
+				$newGroupMemberships
+			]
 		);
-
-		$groupManager->removeUserFromGroup( $user, $userGroup );
 	}
 
 	/**
@@ -575,5 +602,25 @@ class NamespaceRepository {
 		} else {
 			return $dbLoadBalancer->getConnectionRef( $i );
 		}
+	}
+
+	private function getUserGroupManager(): UserGroupManager {
+		return $this->user_group_manager ??= MediaWikiServices::getInstance()->getUserGroupManager();
+	}
+
+	private function getUserMessage( string $user_group ): string {
+		if ( $user_group === self::ADMIN_GROUP ) {
+			$msg = wfMessage( "group-" . self::ADMIN_GROUP . "-member" );
+			if ( $msg->exists() )  {
+				return $msg->parse();
+			}
+		} else {
+			$msg = wfMessage( "group-" . $user_group );
+			if ( $msg->exists() ) {
+				return $msg->parse();
+			}
+		}
+
+		return $user_group;
 	}
 }
