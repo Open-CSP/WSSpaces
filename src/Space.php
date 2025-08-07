@@ -210,6 +210,10 @@ class Space {
 			$condition
 		)->caller( __METHOD__ )->fetchRow();
 
+		return self::newFromDbRow( $namespace, $dbr );
+	}
+
+	public static function newFromDbRow( $namespace, $dbr ) {
 		if ( $namespace === false ) {
 			return false;
 		}

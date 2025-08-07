@@ -180,6 +180,11 @@ abstract class WSSHooks {
 				'newfield' => 'protected',
 				'file' => "wss_namespaces_patch_2.sql"
 			],
+			[
+				'table' => 'wss_namespace_admins',
+				'index' => 'wss_namespace_admins_admin_user_id',
+				'file' => 'wss_namespace_admins_patch_1.sql'
+			],
 		];
 
 		foreach ( $sql_patch_files as $patch ) {
@@ -193,6 +198,8 @@ abstract class WSSHooks {
 				$updater->modifyExtensionField( $patch[ 'table' ], $patch[ 'field' ], $path );
 			} elseif ( isset( $patch['newfield'] ) ) {
 				$updater->addExtensionField( $patch[ 'table' ], $patch[ 'newfield' ], $path );
+			} elseif ( isset( $patch['index'] ) ) {
+				$updater->addExtensionIndex( $patch[ 'table' ], $patch[ 'index' ], $path );
 			} else {
 				$updater->modifyExtensionTable( $patch[ 'table' ], $path );
 			}
