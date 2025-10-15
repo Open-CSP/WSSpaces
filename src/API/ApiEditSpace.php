@@ -54,7 +54,7 @@ class ApiEditSpace extends ApiBase {
 		$ns_admins = $request_params[ "nsadmins" ] ?? null;
 		$ns_protected = $request_params[ "nsprotected" ] ?? null;
 
-		$this->validateParams( $old_space, $ns_id, $ns_key, $ns_name, $ns_description );
+		$this->validateParams( $old_space, $ns_key, $ns_name, $ns_description );
 
 		$namespace_repository = new NamespaceRepository();
 
