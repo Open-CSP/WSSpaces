@@ -80,6 +80,32 @@ class NamespaceRepository {
 	}
 
 	/**
+	 * Returns true if and only if the given namespace is managed by WSSpaces.
+	 *
+	 * @param int $nsid
+	 * @return bool
+	 */
+	public static function isWSSpacesManaged( int $nsid ): bool {
+		$dbr = self::getConnection( MediaWikiServices::getInstance()->getDBLoadBalancer(), DB_PRIMARY );
+
+		// In some rare cases, update.php might look up namespaces before
+		// the database has been set up for this extension.
+		if ( !$dbr->tableExists( 'wss_namespaces', __METHOD__ ) ) {
+			return false;
+		}
+
+		$result = $dbr->newSelectQueryBuilder()->select(
+			'namespace_id'
+		)->from(
+			'wss_namespaces'
+		)->where(
+			[ 'namespace_id' => $nsid ]
+		)->caller( __METHOD__ )->fetchField();
+
+		return $result !== false;
+	}
+
+	/**
 	 * Gets all namespaces. When the first parameter is true, the key will be the name
 	 * of the namespace, and the value the constant, otherwise the key will be the namespace constant and
 	 * the value the namespace name.
